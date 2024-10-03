@@ -13,7 +13,7 @@ Before you can use this guide you will need to have [python3](https://www.python
 
 For the purpose of this guide we will need to install:
 
-- `anthropic` library to perform Claude api calls and completions
+- `openai` library to perform OpenAIapi calls and completions
 - `exa_py` library to perform Exa search
 - `rich` library to make the output more readable
 
@@ -332,7 +332,7 @@ if __name__ == "__main__":
 
 ```
 
-We have now written an advanced search tool that combines the power of Claude's language models with Exa's semantic search capabilities, providing users with informative and context-aware responses to their queries.
+We have now written an advanced search tool that combines the power of OpenAI's language models with Exa's semantic search capabilities, providing users with informative and context-aware responses to their queries.
 
 ### 4. Running the code
 
