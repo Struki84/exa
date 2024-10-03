@@ -1,15 +1,66 @@
 # Using Claude's Tool Use Feature with Exa Search Integration
-This guide will show you how to use Claude's tool use feature with an Exa search integration.
-## What this doc covers
-Explain Claude's tool use feature
-Show you how to use Exa within the tool call
+This guide will show you how to properly set up and use Anthropic's and Exa's API client, and utilize Claude's function calling or "tool use" feature to perform exa search integration. 
+
+### What this guide covers
+- installing the prerequisit packages
+- setting up API keys as environment variables
+- explain how Claude's "tool use" feature works
+- explain how to use Exa within the tool call
+
 ## Guide
 ### 1. Pre-requisites and installation
-Install the Anthropic and Exa libraries
+Before you can use this guide you will need to have [python3](https://www.python.org/doc/) and [pip](https://pip.pypa.io/en/stable/installation/) installed on your machine.
+
+For the purpose of this guide we will need to import:
+
+- `anthropic` library to perform Claude api calls and completions
+- `exa_py` library to perform Exa search
+- `rich` library to make the output more readable
+
+Install the libraries.
 ```python
 pip install anthropic exa_py rich
+
 ```
+To successfully use the Exa search client and Anthropic client you will need to have your `ANTHROPIC_API_KEY` and `EXA_API_KEY` 
+set as environment variables.
+
+To get Anthropic API key, you will first need an Anthropic account, visit [Anthropic console](https://console.anthropic.com/settings/keys) to generate your API key.
+
+Similary, to get Exa API key, you will first need an Exa account, visit [Exa dashboard](https://dashboard.exa.ai/api-keys) to generate your API key.
+
+> Be safe with our API keys. Make sure they are not hardocded in your code or added in a git repository to prevent leaking them to the public.
+
+You can create an `.env` file in the root of your project and add the following to it:
+
+```bash
+ANTHROPIC_API_KEY=<insert your Anthropic API key here>
+EXA_API_KEY=<insert your Exa API key here>
+```
+
+Make sure to add your `.env` file to your `.gitignore` file.
+
 ### 2. What is Claude tool use?
+Calude LLM can call a function you have defined in your code. To do this you first need to describe the function you want to call to Claude's LLM. You can do this by defining a description object of the format:
+
+```json
+{
+    "name": "my_function_name", # The name of the function
+    "description": "The description of my function", # Describe the function so Claude knows when and how to use it.
+    "input_schema": { # input schema describes the format and the type of paramters Claude needs to generate to use the function
+        "type": "object", # format of the generated Claude reponse
+        "properties": { # properties defines the input parameters of the function
+            "query": { # the function expects a query parameter
+                "type": "string", # of type string
+                "description": "The search query to perform.", # describes the paramteres to Calude
+            },
+        },
+        "required": ["query"], # define which parameters are required
+    },
+}
+```
+
+
 Claude's tool use feature returns an object with a string, which is the function name defined in _your_ code, and the arguments that the function takes. This does not execute or _call_ functions on Anthropic's side; it only returns the function name and arguments which you will have to parse and call yourself in your code.
 For example:
 ```python
