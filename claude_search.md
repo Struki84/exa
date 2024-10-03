@@ -1,5 +1,5 @@
-# Using Claude's Tool Use Feature with Exa Search Integration
-This guide will show you how to properly set up and use Anthropic's and Exa's API client, and utilize Claude's function calling or "tool use" feature to perform exa search integration. 
+# Using Claude's "Tool Use" Feature with Exa Search Integration
+This guide will show you how to properly set up and use Anthropic's and Exa's API client, and utilize Claude's function calling or "tool use" feature to perform Exa search integration. 
 
 ### What this guide covers
 - installing the prerequisit packages
@@ -11,7 +11,7 @@ This guide will show you how to properly set up and use Anthropic's and Exa's AP
 ### 1. Pre-requisites and installation
 Before you can use this guide you will need to have [python3](https://www.python.org/doc/) and [pip](https://pip.pypa.io/en/stable/installation/) installed on your machine.
 
-For the purpose of this guide we will need to import:
+For the purpose of this guide we will need to install:
 
 - `anthropic` library to perform Claude api calls and completions
 - `exa_py` library to perform Exa search
@@ -34,11 +34,11 @@ Similary, to get Exa API key, you will first need an Exa account, visit [Exa das
 You can create an `.env` file in the root of your project and add the following to it:
 
 ```bash
-ANTHROPIC_API_KEY=<insert your Anthropic API key here>
-EXA_API_KEY=<insert your Exa API key here>
+ANTHROPIC_API_KEY=insert your Anthropic API key here, without the quotes
+EXA_API_KEY=insert your Exa API key here, without the quotes
 ```
 
-Make sure to add your `.env` file to your `.gitignore` file.
+Make sure to add your `.env` file to your `.gitignore` file if you have one.
 
 ### 2. What is Claude tool use?
 Calude LLM can call a function you have defined in your code. To do this you first need to describe the function you want to call to Claude's LLM. You can do this by defining a description object of the format:
@@ -47,7 +47,7 @@ Calude LLM can call a function you have defined in your code. To do this you fir
 {
     "name": "my_function_name", # The name of the function
     "description": "The description of my function", # Describe the function so Claude knows when and how to use it.
-    "input_schema": { # input schema describes the format and the type of paramters Claude needs to generate to use the function
+    "input_schema": { # input schema describes the format and the type of parameters Claude needs to generate to use the function
         "type": "object", # format of the generated Claude reponse
         "properties": { # properties defines the input parameters of the function
             "query": { # the function expects a query parameter
@@ -60,55 +60,38 @@ Calude LLM can call a function you have defined in your code. To do this you fir
 }
 ```
 
+When this description is sent to Claude's LLM, it returns an object with a string, which is the function name defined in _your_ code, and the arguments that the function takes. This does not execute or _call_ functions on Anthropic's side; it only returns the function name and arguments which you will have to parse and call yourself in your code.
 
-Claude's tool use feature returns an object with a string, which is the function name defined in _your_ code, and the arguments that the function takes. This does not execute or _call_ functions on Anthropic's side; it only returns the function name and arguments which you will have to parse and call yourself in your code.
-For example:
 ```python
 {
   "type": "tool_use",
   "id": "toolu_01A09q90qw90lq917835123",
-  "name": "exa_search",
+  "name": "my_function_name",
   "input": {"query": "Latest developments in quantum computing"}
 }
 ```
-We will use this object to call the `exa_search` function we define with the arguments provided.
-### 3. Use Exa Search in your tools
-We need to import and initialize the Anthropic and Exa libraries. We'll also use components from the `rich` library to make the output more readable, and import some types to make the code more readable and extensible.
+We will use the object of this fromat to call the `exa_search` function we define.
+
+### 3. Use Exa Search as Calude tool
+First we import and initialize the Anthropic and Exa libraries and load the stored API keys. 
+
+
 ```python
-import os
-from typing import Any, Dict
 import anthropic
+
+from dotenv import load_dotenv
 from exa_py import Exa
-from rich.console import Console
-from rich.markdown import Markdown
-from rich.prompt import Prompt
+
+load_dotenv()
+
 claude = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 exa = Exa(api_key=os.getenv("EXA_API_KEY"))
-console = Console()
 ```
-<a href="https://dashboard.exa.ai/login?redirect=/api-keys" target="_blank" class="button"><span>Get Exa API Key</span></a>
-<style>
-.button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #018ef5 !important;
-  width: 100%;
-  padding: 8px 10px;
-  text-decoration: none !important;
-  border-radius: 5px;
-  font-weight: bold;
-}
-<br />
-.button:hover { 
-  background-color: #0180dd !important; 
-} 
-</style>
-We'll define the `SYSTEM` constant here, which we will later use to tell Claude what it is supposed to do:
-```python
-SYSTEM_MESSAGE = "You are an agent that has access to an advanced search engine. Please provide the user with the information they are looking for by using the search tool provided."
-```
-Next, we define the function and function schema so that Claude knows that it exists and what arguments our local function takes:
+
+
+Next, we define the function and the function schema so that Claude how to use it and what arguments our local function takes:
+
+
 ```python
 TOOLS = [
     {
@@ -127,12 +110,23 @@ TOOLS = [
     }
 ]
 ```
-Create the `exa_search` function that will call Exa's search function with the query:
+
+
+Finally we'll define the primer `SYSTEM_MESSAGE`, which explains to Claude what it is supposed to do:
+
+```python
+SYSTEM_MESSAGE = "You are an agent that has access to an advanced search engine. Please provide the user with the information they are looking for by using the search tool provided."
+```
+
+We can now start writting the code needed to perfrom the LLM calls and the search. We'll create the `exa_search` function that will call Exa's search function with the query:
+
 ```python
 def exa_search(query: str) -> Dict[str, Any]:
     return exa.search_and_contents(query=query, type='auto', highlights=True)
 ```
-Now we'll create a function to process the tool calls:
+
+Next we create a function to process the tool calls:
+
 ```python
 def process_tool_calls(tool_calls):
     search_results = []
@@ -149,7 +143,9 @@ def process_tool_calls(tool_calls):
             )
     return search_results
 ```
-Now we'll create a `main` function to handle user input and interaction with Claude:
+
+Lastly we'll create a `main` function to bring it all together, handle the user input and interaction with Claude:
+
 ```python
 def main():
     messages = []
@@ -189,25 +185,42 @@ def main():
 if __name__ == "__main__":
     main()
 ```
-### 4. Running the code
-Remember that you need to have your `ANTHROPIC_API_KEY` and `EXA_API_KEY` set as environment variables or set them when initializing the Anthropic and Exa objects.
+
 The implementation creates a loop that continually prompts the user for search queries, uses Claude's tool use feature to determine when to perform a search, and then uses the Exa search results to provide an informed response to the user's query.
-The script uses the rich library to provide a more visually appealing console interface, including colored output and markdown rendering for the responses.
-Now you have an advanced search tool that combines the power of Claude's language models with Exa's semantic search capabilities, providing users with informative and context-aware responses to their queries.
+
+We also use the rich library to provide a more visually appealing console interface, including colored output and markdown rendering for the responses.
+
 ### Full code
-Here's the complete code for the Claude and Exa integration:
+
 ```python
+
+# import all required packages
 import os
-from typing import Any, Dict
 import anthropic
+
+from dotenv import load_dotenv
+from typing import Any, Dict
 from exa_py import Exa
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.prompt import Prompt
+
+# Load environment variables from .env file
+load_dotenv()
+
+# create the anthropic client
 claude = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+# create the exa client
 exa = Exa(api_key=os.getenv("EXA_API_KEY"))
+
+# create the rich console
 console = Console()
+
+# define the system message (primer) of your agent
 SYSTEM_MESSAGE = "You are an agent that has access to an advanced search engine. Please provide the user with the information they are looking for by using the search tool provided."
+
+# define the tools available to the agent - we're defining a single tool, exa_search
 TOOLS = [
     {
         "name": "exa_search",
@@ -224,30 +237,46 @@ TOOLS = [
         },
     }
 ]
+
+# define the function that will be called when the tool is used and perform the search
+# and the retrival of the result highlights.
+# https://docs.exa.ai/reference/python-sdk-specification#search_and_contents-method
 def exa_search(query: str) -> Dict[str, Any]:
     return exa.search_and_contents(query=query, type='auto', highlights=True)
+
+# define the function that will process the tool call and perform the exa search
 def process_tool_calls(tool_calls):
     search_results = []
+    
     for tool_call in tool_calls:
         function_name = tool_call.name
         function_args = tool_call.input
+        
         if function_name == "exa_search":
             results = exa_search(**function_args)
             search_results.append(results)
+            
             console.print(
                 f"[bold cyan]Context updated[/bold cyan] [i]with[/i] "
                 f"[bold green]exa_search[/bold green]: ",
                 function_args.get("query"),
             )
+            
     return search_results
+
+
 def main():
     messages = []
+    
     while True:
         try:
+            # create the user input prompt using rich
             user_query = Prompt.ask(
                 "[bold yellow]What do you want to search for?[/bold yellow]",
             )
             messages.append({"role": "user", "content": user_query})
+            
+            # call claude llm by creating a completion which calls the defined exa tool
             completion = claude.messages.create(
                 model="claude-3-sonnet-20240229",
                 max_tokens=1024,
@@ -255,26 +284,81 @@ def main():
                 messages=messages,
                 tools=TOOLS,
             )
+            
+            # completion will contain the object needed to invoke your tool and perform the search
             message = completion.content[0]
             tool_calls = [content for content in completion.content if content.type == "tool_use"]
+            
             if tool_calls:
+                
+                # process the tool object created by Calude llm and store the search results
                 search_results = process_tool_calls(tool_calls)
+                
+                # create new message conating the search results and request the Claude llm to process the results
                 messages.append({"role": "assistant", "content": f"I've performed a search and found the following results: {search_results}"})
                 messages.append({"role": "user", "content": "Please summarize this information and answer my previous query based on these results."})
+                
+                # call Claude llm again to process the search results and yield the final answer
                 completion = claude.messages.create(
                     model="claude-3-sonnet-20240229",
                     max_tokens=1024,
                     system=SYSTEM_MESSAGE,
                     messages=messages,
                 )
+                
+                # parse the agents final answer and print it
                 response = completion.content[0].text
                 console.print(Markdown(response))
                 messages.append({"role": "assistant", "content": response})
+
             else:
+                # in case tool hasn't been used, print the standard agent reponse
                 console.print(Markdown(message.text))
                 messages.append({"role": "assistant", "content": message.text})
+                
         except Exception as e:
             console.print(f"[bold red]An error occurred:[/bold red] {str(e)}")
+            
 if __name__ == "__main__":
     main()
+
 ```
+
+We have now written an advanced search tool that combines the power of Claude's language models with Exa's semantic search capabilities, providing users with informative and context-aware responses to their queries.
+
+### 4. Running the code
+
+Save the code in a file, ie. `calude_search.py`, and make sure the `.env` file containing the API kyes we previoulsy created is in the same directory as the script.
+
+Then run the script using the following command from your terminal:
+
+```bash
+python claude_search.py
+```
+
+You should see a prompt: 
+
+```bash
+What do you want to search for?
+```
+
+Let's test it out.
+
+```bash
+What do you want to search for?: Who is Steve Rogers?
+Context updated with exa_search:  Steve Rogers
+Based on the search results, Steve Rogers is a fictional superhero character appearing in American comic books published by Marvel Comics. He is better known as Captain America.
+
+The key points about Steve Rogers are:
+
+ • He was born in the 1920s to a poor family in New York City. As a frail young man, he was rejected from military service during World War II.
+ • He was recruited into a secret government program called Project Rebirth where he was transformed into a super-soldier through an experimental serum, gaining enhanced strength, agility and other abilities.
+ • After the serum treatment, he became Captain America and fought against the Nazis alongside other heroes like Bucky Barnes and the Invaders during WWII.
+ • He was frozen in ice towards the end of the war and remained that way for decades until being revived in modern times.
+ • As Captain America, he continued his heroic adventures, becoming a core member and leader of the superhero team the Avengers.
+ • Steve Rogers embodies the ideals of patriotism, freedom and serving one's country as a symbol of liberty and justice.
+
+So in summary, Steve Rogers is the original and most well-known character to take on the superhero mantle of Captain America within the Marvel universe.
+```
+
+That's it, enjoy your search agent!
