@@ -9,9 +9,6 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.prompt import Prompt
 
-openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-exa = Exa(api_key=os.getenv("EXA_API_KEY"))
-
 # Load environment variables from .env file
 load_dotenv()
 
@@ -22,7 +19,6 @@ openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 exa = Exa(api_key=os.getenv("EXA_API_KEY"))
 
 # create the rich console
->>>>>>> 4d1e78a (Added comments to openai example)
 console = Console()
 
 # define the system message (primer) of your agent
@@ -130,6 +126,7 @@ def main():
                 console.print(Markdown(message.content))
         except Exception as e:
             console.print(f"[bold red]An error occurred:[/bold red] {str(e)}")
+            
             
 if __name__ == "__main__":
     main()

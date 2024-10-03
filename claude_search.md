@@ -41,7 +41,7 @@ EXA_API_KEY=insert your Exa API key here, without the quotes
 Make sure to add your `.env` file to your `.gitignore` file if you have one.
 
 ### 2. What is Claude tool use?
-Calude LLM can call a function you have defined in your code, this is called [tool calling](https://docs.anthropic.com/en/docs/build-with-claude/tool-use). To do this you first need to describe the function you want to call to Claude's LLM. You can do this by defining a description object of the format:
+Calude LLM's can call a function you have defined in your code, this is called [tool calling](https://docs.anthropic.com/en/docs/build-with-claude/tool-use). To do this you first need to describe the function you want to call to Claude's LLM. You can do this by defining a description object of the format:
 
 ```json
 {
@@ -118,7 +118,7 @@ Finally we'll define the primer `SYSTEM_MESSAGE`, which explains to Claude what 
 SYSTEM_MESSAGE = "You are an agent that has access to an advanced search engine. Please provide the user with the information they are looking for by using the search tool provided."
 ```
 
-We can now start writting the code needed to perfrom the LLM calls and the search. We'll create the `exa_search` function that will call Exa's search function with the query:
+We can now start writting the code needed to perfrom the LLM calls and the search. We'll create the `exa_search` function that will call Exa's `search_and_contents` function with the query:
 
 ```python
 def exa_search(query: str) -> Dict[str, Any]:
