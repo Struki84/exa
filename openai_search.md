@@ -35,7 +35,7 @@ Similary, to get Exa API key, you will first need an Exa account, visit [Exa das
 You can create an `.env` file in the root of your project and add the following to it:
 
 ```bash
-OPENAI_API_KEY=insert your Anthropic API key here, without the quotes
+OPENAI_API_KEY=insert your OpenAI API key here, without the quotes
 EXA_API_KEY=insert your Exa API key here, without the quotes
 ```
 
@@ -49,11 +49,11 @@ OpenAI LLM's can call a function you have defined in your code, this is called [
     "name": "my_function_name", # The name of the function
     "description": "The description of my function", # Describe the function so OpenAI knows when and how to use it.
     "input_schema": { # input schema describes the format and the type of parameters OpenAI needs to generate to use the function
-        "type": "object", # format of the generated OpenAI reponse
+        "type": "object", # format of the generated OpenAI response
         "properties": { # properties defines the input parameters of the function
             "query": { # the function expects a query parameter
                 "type": "string", # of type string
-                "description": "The search query to perform.", # describes the paramteres to Calude
+                "description": "The search query to perform.", # describes the paramteres to OpenAI
             },
         },
         "required": ["query"], # define which parameters are required
@@ -336,7 +336,7 @@ We have now written an advanced search tool that combines the power of OpenAI's 
 
 ### 4. Running the code
 
-Save the code in a file, ie. `openai_search.py`, and make sure the `.env` file containing the API kyes we previoulsy created is in the same directory as the script.
+Save the code in a file, ie. `openai_search.py`, and make sure the `.env` file containing the API keys we previoulsy created is in the same directory as the script.
 
 Then run the script using the following command from your terminal:
 

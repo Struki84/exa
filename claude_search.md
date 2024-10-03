@@ -40,7 +40,7 @@ EXA_API_KEY=insert your Exa API key here, without the quotes
 
 Make sure to add your `.env` file to your `.gitignore` file if you have one.
 
-### 2. What is Claude tool use?
+### 2. What is Claude tool calling?
 Calude LLM's can call a function you have defined in your code, this is called [tool calling](https://docs.anthropic.com/en/docs/build-with-claude/tool-use). To do this you first need to describe the function you want to call to Claude's LLM. You can do this by defining a description object of the format:
 
 ```json
@@ -48,7 +48,7 @@ Calude LLM's can call a function you have defined in your code, this is called [
     "name": "my_function_name", # The name of the function
     "description": "The description of my function", # Describe the function so Claude knows when and how to use it.
     "input_schema": { # input schema describes the format and the type of parameters Claude needs to generate to use the function
-        "type": "object", # format of the generated Claude reponse
+        "type": "object", # format of the generated Claude response
         "properties": { # properties defines the input parameters of the function
             "query": { # the function expects a query parameter
                 "type": "string", # of type string
