@@ -1,5 +1,7 @@
 import json
 import os
+
+from dotenv import load_dotenv
 from typing import Any, Dict
 from exa_py import Exa
 from openai import OpenAI
@@ -9,11 +11,27 @@ from rich.prompt import Prompt
 
 openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 exa = Exa(api_key=os.getenv("EXA_API_KEY"))
+
+# Load environment variables from .env file
+load_dotenv()
+
+# create the openai client
+openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# create the exa client
+exa = Exa(api_key=os.getenv("EXA_API_KEY"))
+
+# create the rich console
+>>>>>>> 4d1e78a (Added comments to openai example)
 console = Console()
+
+# define the system message (primer) of your agent
 SYSTEM_MESSAGE = {
     "role": "system",
     "content": "You are the world's most advanced search engine. Please provide the user with the information they are looking for by using the tools provided.",
 }
+
+# define the tools available to the agent - we're defining a single tool, exa_search
 TOOLS = [
     {
         "type": "function",
@@ -33,12 +51,20 @@ TOOLS = [
         },
     }
 ]
+
+# define the function that will be called when the tool is used and perform the search
+# and the retrival of the result highlights.
+# https://docs.exa.ai/reference/python-sdk-specification#search_and_contents-method
 def exa_search(query: str) -> Dict[str, Any]:
     return exa.search_and_contents(query=query, type='auto', highlights=True)
+
+# define the function that will process the tool call and perform the exa search
 def process_tool_calls(tool_calls, messages):
+    
     for tool_call in tool_calls:
         function_name = tool_call.function.name
         function_args = json.loads(tool_call.function.arguments)
+        
         if function_name == "exa_search":
             search_results = exa_search(**function_args)
             messages.append(
@@ -53,25 +79,37 @@ def process_tool_calls(tool_calls, messages):
                 f"[bold green]exa_search ({function_args.get('mode')})[/bold green]: ",
                 function_args.get("query"),
             )
+            
     return messages
+
 def main():
     messages = [SYSTEM_MESSAGE]
+    
     while True:
         try:
+            # create the user input prompt using rich
             user_query = Prompt.ask(
                 "[bold yellow]What do you want to search for?[/bold yellow]",
             )
             messages.append({"role": "user", "content": user_query})
+            
+            # call openai llm by creating a completion which calls the defined exa tool
             completion = openai.chat.completions.create(
                 model="gpt-4o",
                 messages=messages,
                 tools=TOOLS,
                 tool_choice="auto",
             )
+            
+            # completion will contain the object needed to invoke your tool and perform the search
             message = completion.choices[0].message
             tool_calls = message.tool_calls
+            
             if tool_calls:
+
                 messages.append(message)
+
+                # process the tool object created by OpenAI llm and store the search results
                 messages = process_tool_calls(tool_calls, messages)
                 messages.append(
                     {
@@ -79,14 +117,19 @@ def main():
                         "content": "Answer my previous query based on the search results.",
                     }
                 )
+                
+                # call OpenAI llm again to process the search results and yield the final answer
                 completion = openai.chat.completions.create(
                     model="gpt-4o",
                     messages=messages,
                 )
+                
+                # parse the agents final answer and print it
                 console.print(Markdown(completion.choices[0].message.content))
             else:
                 console.print(Markdown(message.content))
         except Exception as e:
             console.print(f"[bold red]An error occurred:[/bold red] {str(e)}")
+            
 if __name__ == "__main__":
     main()

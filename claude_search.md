@@ -29,7 +29,7 @@ To get Anthropic API key, you will first need an Anthropic account, visit [Anthr
 
 Similary, to get Exa API key, you will first need an Exa account, visit [Exa dashboard](https://dashboard.exa.ai/api-keys) to generate your API key.
 
-> Be safe with our API keys. Make sure they are not hardocded in your code or added in a git repository to prevent leaking them to the public.
+> Be safe with your API keys. Make sure they are not hardocded in your code or added in a git repository to prevent leaking them to the public.
 
 You can create an `.env` file in the root of your project and add the following to it:
 
@@ -41,7 +41,7 @@ EXA_API_KEY=insert your Exa API key here, without the quotes
 Make sure to add your `.env` file to your `.gitignore` file if you have one.
 
 ### 2. What is Claude tool use?
-Calude LLM can call a function you have defined in your code. To do this you first need to describe the function you want to call to Claude's LLM. You can do this by defining a description object of the format:
+Calude LLM can call a function you have defined in your code, this is called [tool calling](https://docs.anthropic.com/en/docs/build-with-claude/tool-use). To do this you first need to describe the function you want to call to Claude's LLM. You can do this by defining a description object of the format:
 
 ```json
 {
@@ -89,7 +89,7 @@ exa = Exa(api_key=os.getenv("EXA_API_KEY"))
 ```
 
 
-Next, we define the function and the function schema so that Claude how to use it and what arguments our local function takes:
+Next, we define the function and the function schema so that Claude knows how to use it and what arguments our local function takes:
 
 
 ```python
