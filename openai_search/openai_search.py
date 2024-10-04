@@ -49,7 +49,7 @@ TOOLS = [
 ]
 
 # define the function that will be called when the tool is used and perform the search
-# and the retrival of the result highlights.
+# and the retrieval of the result highlights.
 # https://docs.exa.ai/reference/python-sdk-specification#search_and_contents-method
 def exa_search(query: str) -> Dict[str, Any]:
     return exa.search_and_contents(query=query, type='auto', highlights=True)

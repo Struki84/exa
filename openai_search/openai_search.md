@@ -197,13 +197,13 @@ We also use the rich library to provide a more visually appealing console interf
 ### Full code
 
 ```python
-import json
+# required packages
 import os
+import anthropic
 
 from dotenv import load_dotenv
 from typing import Any, Dict
 from exa_py import Exa
-from openai import OpenAI
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.prompt import Prompt
@@ -211,8 +211,8 @@ from rich.prompt import Prompt
 # Load environment variables from .env file
 load_dotenv()
 
-# create the openai client
-openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# create the anthropic client
+claude = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 # create the exa client
 exa = Exa(api_key=os.getenv("EXA_API_KEY"))
@@ -221,28 +221,22 @@ exa = Exa(api_key=os.getenv("EXA_API_KEY"))
 console = Console()
 
 # define the system message (primer) of your agent
-SYSTEM_MESSAGE = {
-    "role": "system",
-    "content": "You are the world's most advanced search engine. Please provide the user with the information they are looking for by using the tools provided.",
-}
+SYSTEM_MESSAGE = "You are an agent that has access to an advanced search engine. Please provide the user with the information they are looking for by using the search tool provided."
 
 # define the tools available to the agent - we're defining a single tool, exa_search
 TOOLS = [
     {
-        "type": "function",
-        "function": {
-            "name": "exa_search",
-            "description": "Perform a search query on the web, and retrieve the world's most relevant information.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "The search query to perform.",
-                    },
+        "name": "exa_search",
+        "description": "Perform a search query on the web, and retrieve the most relevant URLs/web data.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "The search query to perform.",
                 },
-                "required": ["query"],
             },
+            "required": ["query"],
         },
     }
 ]
@@ -254,31 +248,28 @@ def exa_search(query: str) -> Dict[str, Any]:
     return exa.search_and_contents(query=query, type='auto', highlights=True)
 
 # define the function that will process the tool call and perform the exa search
-def process_tool_calls(tool_calls, messages):
+def process_tool_calls(tool_calls):
+    search_results = []
     
     for tool_call in tool_calls:
-        function_name = tool_call.function.name
-        function_args = json.loads(tool_call.function.arguments)
+        function_name = tool_call.name
+        function_args = tool_call.input
         
         if function_name == "exa_search":
-            search_results = exa_search(**function_args)
-            messages.append(
-                {
-                    "role": "tool",
-                    "content": str(search_results),
-                    "tool_call_id": tool_call.id,
-                }
-            )
+            results = exa_search(**function_args)
+            search_results.append(results)
+            
             console.print(
                 f"[bold cyan]Context updated[/bold cyan] [i]with[/i] "
-                f"[bold green]exa_search ({function_args.get('mode')})[/bold green]: ",
+                f"[bold green]exa_search[/bold green]: ",
                 function_args.get("query"),
             )
             
-    return messages
+    return search_results
+
 
 def main():
-    messages = [SYSTEM_MESSAGE]
+    messages = []
     
     while True:
         try:
@@ -288,44 +279,48 @@ def main():
             )
             messages.append({"role": "user", "content": user_query})
             
-            # call openai llm by creating a completion which calls the defined exa tool
-            completion = openai.chat.completions.create(
-                model="gpt-4o",
+            # call claude llm by creating a completion which calls the defined exa tool
+            completion = claude.messages.create(
+                model="claude-3-sonnet-20240229",
+                max_tokens=1024,
+                system=SYSTEM_MESSAGE,
                 messages=messages,
                 tools=TOOLS,
-                tool_choice="auto",
             )
             
             # completion will contain the object needed to invoke your tool and perform the search
-            message = completion.choices[0].message
-            tool_calls = message.tool_calls
+            message = completion.content[0]
+            tool_calls = [content for content in completion.content if content.type == "tool_use"]
             
             if tool_calls:
-
-                messages.append(message)
-
-                # process the tool object created by OpenAI llm and store the search results
-                messages = process_tool_calls(tool_calls, messages)
-                messages.append(
-                    {
-                        "role": "user",
-                        "content": "Answer my previous query based on the search results.",
-                    }
-                )
                 
-                # call OpenAI llm again to process the search results and yield the final answer
-                completion = openai.chat.completions.create(
-                    model="gpt-4o",
+                # process the tool object created by Claude llm and store the search results
+                search_results = process_tool_calls(tool_calls)
+                
+                # create new message containing the search results and request the Claude llm to process the results
+                messages.append({"role": "assistant", "content": f"I've performed a search and found the following results: {search_results}"})
+                messages.append({"role": "user", "content": "Please summarize this information and answer my previous query based on these results."})
+                
+                # call Claude llm again to process the search results and yield the final answer
+                completion = claude.messages.create(
+                    model="claude-3-sonnet-20240229",
+                    max_tokens=1024,
+                    system=SYSTEM_MESSAGE,
                     messages=messages,
                 )
                 
                 # parse the agents final answer and print it
-                console.print(Markdown(completion.choices[0].message.content))
+                response = completion.content[0].text
+                console.print(Markdown(response))
+                messages.append({"role": "assistant", "content": response})
+
             else:
-                console.print(Markdown(message.content))
+                # in case tool hasn't been used, print the standard agent response
+                console.print(Markdown(message.text))
+                messages.append({"role": "assistant", "content": message.text})
+                
         except Exception as e:
             console.print(f"[bold red]An error occurred:[/bold red] {str(e)}")
-            
             
 if __name__ == "__main__":
     main()
@@ -336,7 +331,7 @@ We have now written an advanced search tool that combines the power of OpenAI's 
 
 ### 4. Running the code
 
-Save the code in a file, ie. `openai_search.py`, and make sure the `.env` file containing the API keys we previously created is in the same directory as the script.
+Save the code in a file, e.g. `openai_search.py`, and make sure the `.env` file containing the API keys we previously created is in the same directory as the script.
 
 Then run the script using the following command from your terminal:
 

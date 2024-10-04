@@ -43,7 +43,7 @@ TOOLS = [
 ]
 
 # define the function that will be called when the tool is used and perform the search
-# and the retrival of the result highlights.
+# and the retrieval of the result highlights.
 # https://docs.exa.ai/reference/python-sdk-specification#search_and_contents-method
 def exa_search(query: str) -> Dict[str, Any]:
     return exa.search_and_contents(query=query, type='auto', highlights=True)
@@ -80,7 +80,7 @@ def main():
             )
             messages.append({"role": "user", "content": user_query})
             
-            # call claude llm by creating a completion which calls the defined exa tool
+            # call Claude llm by creating a completion which calls the defined exa tool
             completion = claude.messages.create(
                 model="claude-3-sonnet-20240229",
                 max_tokens=1024,
@@ -95,10 +95,10 @@ def main():
             
             if tool_calls:
                 
-                # process the tool object created by Calude llm and store the search results
+                # process the tool object created by Claude llm and store the search results
                 search_results = process_tool_calls(tool_calls)
                 
-                # create new message conating the search results and request the Claude llm to process the results
+                # create new message containing the search results and request the Claude llm to process the results
                 messages.append({"role": "assistant", "content": f"I've performed a search and found the following results: {search_results}"})
                 messages.append({"role": "user", "content": "Please summarize this information and answer my previous query based on these results."})
                 
@@ -116,7 +116,7 @@ def main():
                 messages.append({"role": "assistant", "content": response})
 
             else:
-                # in case tool hasn't been used, print the standard agent reponse
+                # in case tool hasn't been used, print the standard agent response
                 console.print(Markdown(message.text))
                 messages.append({"role": "assistant", "content": message.text})
                 
