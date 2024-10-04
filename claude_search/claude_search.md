@@ -24,7 +24,9 @@ pip install anthropic exa_py rich
 To successfully use the Exa search client and Anthropic client you will need to have your `ANTHROPIC_API_KEY` and `EXA_API_KEY` 
 set as environment variables.
 
-To get an Anthropic API key, you will first need an Anthropic account, visit Anthropic console to generate your API key.
+To get an Anthropic API key, you will first need an Anthropic account, visit the [Anthropic console](https://console.anthropic.com/settings/keys) to generate your API key.
+
+Similarly, to get the Exa API key, you will first need an Exa account, visit the Exa dashboard to generate your API key.
 
 <a href="https://dashboard.exa.ai/login?redirect=/api-keys" target="_blank" class="button"><span>Get Exa API Key</span></a>
 
@@ -48,7 +50,6 @@ To get an Anthropic API key, you will first need an Anthropic account, visit Ant
 }  
 </style>
 
-Similarly, to get Exa API key, you will first need an Exa account, visit [Exa dashboard](https://dashboard.exa.ai/api-keys) to generate your API key.
 > Be safe with your API keys. Make sure they are not hardcoded in your code or added to a git repository to prevent leaking them to the public.
 
 
@@ -94,7 +95,7 @@ When this description is sent to Claude's LLM, it returns an object with a strin
 We will use the object of this format to call the `exa_search` function we define.
 
 ### 3. Use Exa Search as Claude tool
-First we import and initialise the Anthropic and Exa libraries and load the stored API keys. 
+First, we import and initialise the Anthropic and Exa libraries and load the stored API keys. 
 
 
 ```python
@@ -133,7 +134,7 @@ TOOLS = [
 ```
 
 
-Finally we'll define the primer `SYSTEM_MESSAGE`, which explains to Claude what it is supposed to do:
+Finally, we'll define the primer `SYSTEM_MESSAGE`, which explains to Claude what it is supposed to do:
 
 ```python
 SYSTEM_MESSAGE = "You are an agent that has access to an advanced search engine. Please provide the user with the information they are looking for by using the search tool provided."
@@ -146,7 +147,7 @@ def exa_search(query: str) -> Dict[str, Any]:
     return exa.search_and_contents(query=query, type='auto', highlights=True)
 ```
 
-Next we create a function to process the tool use:
+Next, we create a function to process the tool use:
 
 ```python
 def process_tool_calls(tool_calls):
@@ -165,7 +166,7 @@ def process_tool_calls(tool_calls):
     return search_results
 ```
 
-Lastly we'll create a `main` function to bring it all together, handle the user input and interaction with Claude:
+Lastly, we'll create a `main` function to bring it all together, and handle the user input and interaction with Claude:
 
 ```python
 def main():

@@ -26,9 +26,9 @@ pip install openai exa_py rich
 To successfully use the Exa search client and OpenAI client you will need to have your `OPENAI_API_KEY` and `EXA_API_KEY` 
 set as environment variables.
 
-To get OpenAI API key, you will first need an OpenAI account, visit [OpenAI playground](https://platform.openai.com/api-keys) to generate your API key.
+To get the OpenAI API key, you will first need an OpenAI account, visit [OpenAI playground](https://platform.openai.com/api-keys) to generate your API key.
 
-Similarly, to get Exa API key, you will first need an Exa account, visit Exa dashboard to generate your API key.
+Similarly, to get the Exa API key, you will first need an Exa account, visit the Exa dashboard to generate your API key.
 
 <a href="https://dashboard.exa.ai/login?redirect=/api-keys" target="_blank" class="button"><span>Get Exa API Key</span></a>
 
@@ -52,7 +52,7 @@ Similarly, to get Exa API key, you will first need an Exa account, visit Exa das
 }  
 </style>
 
-> Be safe with your API keys. Make sure they are not hardcoded in your code or added in a git repository to prevent leaking them to the public.
+> Be safe with your API keys. Make sure they are not hardcoded in your code or added to a git repository to prevent leaking them to the public.
 
 You can create an `.env` file in the root of your project and add the following to it:
 
@@ -64,7 +64,7 @@ EXA_API_KEY=insert your Exa API key here, without the quotes
 Make sure to add your `.env` file to your `.gitignore` file if you have one.
 
 ### 2. What is OpenAI tool calling?
-OpenAI LLM's can call a function you have defined in your code, this is called [tool calling](https://platform.openai.com/docs/guides/function-calling?lang=python). To do this you first need to describe the function you want to call to OpenAI's LLM. You can do this by defining a description object of the format:
+OpenAI LLMs can call a function you have defined in your code, this is called [tool calling](https://platform.openai.com/docs/guides/function-calling?lang=python). To do this you first need to describe the function you want to call to OpenAI's LLM. You can do this by defining a description object of the format:
 
 ```json
 {
@@ -97,7 +97,7 @@ type='function'
 We will use this object to - in this case - call the `exa_search` function we define with the arguments provided.
 
 ### 3. Use Exa Search as an OpenAI tool
-First we import and initialise the OpenAI and Exa libraries and load the stored API keys. 
+First, we import and initialise the OpenAI and Exa libraries and load the stored API keys. 
 
 ```python
 
@@ -132,7 +132,7 @@ TOOLS = [
 ]
 ```
 
-Finally we'll define the primer `SYSTEM_MESSAGE`, which explains to OpenAI what it is supposed to do:
+Finally, we'll define the primer `SYSTEM_MESSAGE`, which explains to OpenAI what it is supposed to do:
 
 ```python
 SYSTEM_MESSAGE = {
@@ -148,7 +148,7 @@ def exa_search(query: str) -> Dict[str, Any]:
     return exa.search_and_contents(query=query, type='auto', highlights=True)
 ```
 
-Next we create a function to process the tool calls:
+Next, we create a function to process the tool calls:
 
 ```python
 def process_tool_calls(tool_calls, messages):
@@ -172,7 +172,7 @@ def process_tool_calls(tool_calls, messages):
     return messages
 ```
 
-Lastly we'll create a `main` function to bring it all together, handle the user input and interaction with OpenAI:
+Lastly, we'll create a `main` function to bring it all together, and handle the user input and interaction with OpenAI:
 
 ```python
 def main():
