@@ -28,7 +28,29 @@ set as environment variables.
 
 To get OpenAI API key, you will first need an OpenAI account, visit [OpenAI playground](https://platform.openai.com/api-keys) to generate your API key.
 
-Similarly, to get Exa API key, you will first need an Exa account, visit [Exa dashboard](https://dashboard.exa.ai/api-keys) to generate your API key.
+Similarly, to get Exa API key, you will first need an Exa account, visit Exa dashboard to generate your API key.
+
+<a href="https://dashboard.exa.ai/login?redirect=/api-keys" target="_blank" class="button"><span>Get Exa API Key</span></a>
+
+<style>
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #018ef5 !important;
+  width: 100%;
+  padding: 8px 10px;
+  text-decoration: none !important;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+<br />
+
+.button:hover {  
+  background-color: #0180dd !important;  
+}  
+</style>
 
 > Be safe with your API keys. Make sure they are not hardcoded in your code or added in a git repository to prevent leaking them to the public.
 
