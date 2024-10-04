@@ -1,7 +1,6 @@
 # Using Claude's "Tool Use" Feature with Exa Search Integration
-This guide will show you how to properly set up and use Anthropic's and Exa's API client, and utilize Claude's function calling or "tool use" feature to perform Exa search integration. 
+This guide will show you how to properly set up and use Anthropic's and Exa's API client, and utilise Claude's function calling or "tool use" feature to perform Exa search integration. 
 
-### What this guide covers
 ### What this guide covers
 - Installing the prerequisite packages
 - Setting up API keys as environment variables
@@ -9,7 +8,7 @@ This guide will show you how to properly set up and use Anthropic's and Exa's AP
 - Explaining how to use Exa within the tool use feature
 
 ## Guide
-### 1. Pre-requisites and installation
+### 1. Prerequisites and installation
 Before you can use this guide you will need to have [python3](https://www.python.org/doc/) and [pip](https://pip.pypa.io/en/stable/installation/) installed on your machine.
 
 For the purpose of this guide we will need to install:
@@ -25,9 +24,9 @@ pip install anthropic exa_py rich
 To successfully use the Exa search client and Anthropic client you will need to have your `ANTHROPIC_API_KEY` and `EXA_API_KEY` 
 set as environment variables.
 
-To get Anthropic API key, you will first need an Anthropic account, visit [Anthropic console](https://console.anthropic.com/settings/keys) to generate your API key.
+To get an Anthropic API key, you will first need an Anthropic account, visit [Anthropic console](https://console.anthropic.com/settings/keys) to generate your API key.
 
-Similary, to get Exa API key, you will first need an Exa account, visit [Exa dashboard](https://dashboard.exa.ai/api-keys) to generate your API key.
+Similarly, to get Exa API key, you will first need an Exa account, visit [Exa dashboard](https://dashboard.exa.ai/api-keys) to generate your API key.
 > Be safe with your API keys. Make sure they are not hardcoded in your code or added to a git repository to prevent leaking them to the public.
 
 
@@ -72,8 +71,8 @@ When this description is sent to Claude's LLM, it returns an object with a strin
 ```
 We will use the object of this format to call the `exa_search` function we define.
 
-### 3. Use Exa Search as Calude tool
-First we import and initialize the Anthropic and Exa libraries and load the stored API keys. 
+### 3. Use Exa Search as Claude tool
+First we import and initialise the Anthropic and Exa libraries and load the stored API keys. 
 
 
 ```python
@@ -118,7 +117,7 @@ Finally we'll define the primer `SYSTEM_MESSAGE`, which explains to Claude what 
 SYSTEM_MESSAGE = "You are an agent that has access to an advanced search engine. Please provide the user with the information they are looking for by using the search tool provided."
 ```
 
-We can now start writting the code needed to perfrom the LLM calls and the search. We'll create the `exa_search` function that will call Exa's `search_and_contents` function with the query:
+We can now start writing the code needed to perform the LLM calls and the search. We'll create the `exa_search` function that will call Exa's `search_and_contents` function with the query:
 
 ```python
 def exa_search(query: str) -> Dict[str, Any]:
@@ -167,7 +166,7 @@ def main():
             if tool_calls:
                 search_results = process_tool_calls(tool_calls)
                 messages.append({"role": "assistant", "content": f"I've performed a search and found the following results: {search_results}"})
-                messages.append({"role": "user", "content": "Please summarize this information and answer my previous query based on these results."})
+                messages.append({"role": "user", "content": "Please summarise this information and answer my previous query based on these results."})
                 completion = claude.messages.create(
                     model="claude-3-sonnet-20240229",
                     max_tokens=1024,
@@ -188,7 +187,7 @@ if __name__ == "__main__":
 
 The implementation creates a loop that continually prompts the user for search queries, uses Claude's tool use feature to determine when to perform a search, and then uses the Exa search results to provide an informed response to the user's query.
 
-We also use the rich library to provide a more visually appealing console interface, including colored output and markdown rendering for the responses.
+We also use the rich library to provide a more visually appealing console interface, including coloured output and markdown rendering for the responses.
 
 ### Full code
 
@@ -239,7 +238,7 @@ TOOLS = [
 ]
 
 # define the function that will be called when the tool is used and perform the search
-# and the retrival of the result highlights.
+# and the retrieval of the result highlights.
 # https://docs.exa.ai/reference/python-sdk-specification#search_and_contents-method
 def exa_search(query: str) -> Dict[str, Any]:
     return exa.search_and_contents(query=query, type='auto', highlights=True)
@@ -328,7 +327,7 @@ We have now written an advanced search tool that combines the power of Claude's 
 
 ### 4. Running the code
 
-Save the code in a file, ie. `calude_search.py`, and make sure the `.env` file containing the API keys we previoulsy created is in the same directory as the script.
+Save the code in a file, ie. `calude_search.py`, and make sure the `.env` file containing the API keys we previously created is in the same directory as the script.
 
 Then run the script using the following command from your terminal:
 
