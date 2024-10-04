@@ -2,10 +2,11 @@
 This guide will show you how to properly set up and use Anthropic's and Exa's API client, and utilize Claude's function calling or "tool use" feature to perform Exa search integration. 
 
 ### What this guide covers
-- installing the prerequisit packages
-- setting up API keys as environment variables
-- explain how Claude's "tool use" feature works
-- explain how to use Exa within the tool call
+### What this guide covers
+- Installing the prerequisite packages
+- Setting up API keys as environment variables
+- Explaining how Claude's "tool use" feature works
+- Explaining how to use Exa within the tool use feature
 
 ## Guide
 ### 1. Pre-requisites and installation
@@ -13,14 +14,13 @@ Before you can use this guide you will need to have [python3](https://www.python
 
 For the purpose of this guide we will need to install:
 
-- `anthropic` library to perform Claude api calls and completions
+- `anthropic` library to perform Claude API calls and completions
 - `exa_py` library to perform Exa search
 - `rich` library to make the output more readable
 
 Install the libraries.
 ```python
 pip install anthropic exa_py rich
-
 ```
 To successfully use the Exa search client and Anthropic client you will need to have your `ANTHROPIC_API_KEY` and `EXA_API_KEY` 
 set as environment variables.
@@ -28,8 +28,8 @@ set as environment variables.
 To get Anthropic API key, you will first need an Anthropic account, visit [Anthropic console](https://console.anthropic.com/settings/keys) to generate your API key.
 
 Similary, to get Exa API key, you will first need an Exa account, visit [Exa dashboard](https://dashboard.exa.ai/api-keys) to generate your API key.
+> Be safe with your API keys. Make sure they are not hardcoded in your code or added to a git repository to prevent leaking them to the public.
 
-> Be safe with your API keys. Make sure they are not hardocded in your code or added in a git repository to prevent leaking them to the public.
 
 You can create an `.env` file in the root of your project and add the following to it:
 
@@ -40,8 +40,8 @@ EXA_API_KEY=insert your Exa API key here, without the quotes
 
 Make sure to add your `.env` file to your `.gitignore` file if you have one.
 
-### 2. What is Claude tool calling?
-Calude LLM's can call a function you have defined in your code, this is called [tool calling](https://docs.anthropic.com/en/docs/build-with-claude/tool-use). To do this you first need to describe the function you want to call to Claude's LLM. You can do this by defining a description object of the format:
+Claude LLMs can call a function you have defined in your code; this is called [tool use](https://docs.anthropic.com/en/docs/build-with-claude/tool-use). To do this, you first need to describe the function you want to call to Claude's LLM. You can do this by defining a description object of the format:
+
 
 ```json
 {
@@ -51,8 +51,8 @@ Calude LLM's can call a function you have defined in your code, this is called [
         "type": "object", # format of the generated Claude response
         "properties": { # properties defines the input parameters of the function
             "query": { # the function expects a query parameter
-                "type": "string", # of type string
-                "description": "The search query to perform.", # describes the paramteres to Calude
+                "description": "The search query to perform.", # describes the parameter to Claude
+            },
             },
         },
         "required": ["query"], # define which parameters are required
@@ -70,7 +70,7 @@ When this description is sent to Claude's LLM, it returns an object with a strin
   "input": {"query": "Latest developments in quantum computing"}
 }
 ```
-We will use the object of this fromat to call the `exa_search` function we define.
+We will use the object of this format to call the `exa_search` function we define.
 
 ### 3. Use Exa Search as Calude tool
 First we import and initialize the Anthropic and Exa libraries and load the stored API keys. 
@@ -125,7 +125,7 @@ def exa_search(query: str) -> Dict[str, Any]:
     return exa.search_and_contents(query=query, type='auto', highlights=True)
 ```
 
-Next we create a function to process the tool calls:
+Next we create a function to process the tool use:
 
 ```python
 def process_tool_calls(tool_calls):
@@ -244,7 +244,7 @@ TOOLS = [
 def exa_search(query: str) -> Dict[str, Any]:
     return exa.search_and_contents(query=query, type='auto', highlights=True)
 
-# define the function that will process the tool call and perform the exa search
+# define the function that will process the tool use and perform the exa search
 def process_tool_calls(tool_calls):
     search_results = []
     
@@ -328,7 +328,7 @@ We have now written an advanced search tool that combines the power of Claude's 
 
 ### 4. Running the code
 
-Save the code in a file, ie. `calude_search.py`, and make sure the `.env` file containing the API kyes we previoulsy created is in the same directory as the script.
+Save the code in a file, ie. `calude_search.py`, and make sure the `.env` file containing the API keys we previoulsy created is in the same directory as the script.
 
 Then run the script using the following command from your terminal:
 

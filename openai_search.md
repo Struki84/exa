@@ -1,19 +1,19 @@
-# Using OpenAI's "Tool Use" Feature with Exa Search Integration
-This guide will show you how to properly set up and use OpenAI's and Exa's API client, and utilize OpenAI's function calling or "tool use" feature to perform Exa search integration. 
+# Using OpenAI's tool call Feature with Exa Search Integration
+This guide will show you how to properly set up and use OpenAI's and Exa's API clients, and utilise OpenAI's function calling or "tool calling" feature to perform Exa search integration.
 
 ### What this guide covers
-- installing the prerequisit packages
-- setting up API keys as environment variables
-- explain how OpenAI's "tool use" feature works
-- explain how to use Exa within the tool call
+- Installing the prerequisite packages
+- Setting up API keys as environment variables
+- Explain how OpenAI's tool calling feature works
+- Explain how to use Exa within the tool call
 
 ## Guide
-### 1. Pre-requisites and installation
+### 1. Prerequisites and installation
 Before you can use this guide you will need to have [python3](https://www.python.org/doc/) and [pip](https://pip.pypa.io/en/stable/installation/) installed on your machine.
 
 For the purpose of this guide we will need to install:
 
-- `openai` library to perform OpenAIapi calls and completions
+- `openai` library to perform OpenAI API calls and completions
 - `exa_py` library to perform Exa search
 - `rich` library to make the output more readable
 
@@ -28,9 +28,9 @@ set as environment variables.
 
 To get OpenAI API key, you will first need an OpenAI account, visit [OpenAI playground](https://platform.openai.com/api-keys) to generate your API key.
 
-Similary, to get Exa API key, you will first need an Exa account, visit [Exa dashboard](https://dashboard.exa.ai/api-keys) to generate your API key.
+Similarly, to get Exa API key, you will first need an Exa account, visit [Exa dashboard](https://dashboard.exa.ai/api-keys) to generate your API key.
 
-> Be safe with your API keys. Make sure they are not hardocded in your code or added in a git repository to prevent leaking them to the public.
+> Be safe with your API keys. Make sure they are not hardcoded in your code or added in a git repository to prevent leaking them to the public.
 
 You can create an `.env` file in the root of your project and add the following to it:
 
@@ -74,8 +74,8 @@ type='function'
 ```
 We will use this object to - in this case - call the `exa_search` function we define with the arguments provided.
 
-### 3. Use Exa Search as OpenAI tool
-First we import and initialize the OpenAI and Exa libraries and load the stored API keys. 
+### 3. Use Exa Search as an OpenAI tool
+First we import and initialise the OpenAI and Exa libraries and load the stored API keys. 
 
 ```python
 
@@ -119,7 +119,7 @@ SYSTEM_MESSAGE = {
 }
 ```
 
-We can now start writting the code needed to perfrom the LLM calls and the search. We'll create the `exa_search` function that will call Exa's `search_and_contents` function with the query:
+We can now start writing the code needed to perform the LLM calls and the search. We'll create the `exa_search` function that will call Exa's `search_and_contents` function with the query:
 
 ```python
 def exa_search(query: str) -> Dict[str, Any]:
@@ -190,9 +190,9 @@ if __name__ == "__main__":
     main()
 ```
 
-The implementation creates a loop that continually prompts the user for search queries, uses OpenAI's tool use feature to determine when to perform a search, and then uses the Exa search results to provide an informed response to the user's query.
+The implementation creates a loop that continually prompts the user for search queries, uses OpenAI's tool calling feature to determine when to perform a search, and then uses the Exa search results to provide an informed response to the user's query.
 
-We also use the rich library to provide a more visually appealing console interface, including colored output and markdown rendering for the responses.
+We also use the rich library to provide a more visually appealing console interface, including coloured output and markdown rendering for the responses.
 
 ### Full code
 
@@ -248,7 +248,7 @@ TOOLS = [
 ]
 
 # define the function that will be called when the tool is used and perform the search
-# and the retrival of the result highlights.
+# and the retrieval of the result highlights.
 # https://docs.exa.ai/reference/python-sdk-specification#search_and_contents-method
 def exa_search(query: str) -> Dict[str, Any]:
     return exa.search_and_contents(query=query, type='auto', highlights=True)
@@ -336,7 +336,7 @@ We have now written an advanced search tool that combines the power of OpenAI's 
 
 ### 4. Running the code
 
-Save the code in a file, ie. `openai_search.py`, and make sure the `.env` file containing the API keys we previoulsy created is in the same directory as the script.
+Save the code in a file, ie. `openai_search.py`, and make sure the `.env` file containing the API keys we previously created is in the same directory as the script.
 
 Then run the script using the following command from your terminal:
 
