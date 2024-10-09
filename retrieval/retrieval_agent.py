@@ -1,7 +1,6 @@
 from typing import List, Literal
 from dotenv import load_dotenv
 from rich.console import Console
-from rich.markdown import Markdown
 from rich.prompt import Prompt
 
 from langchain_anthropic import ChatAnthropic
@@ -16,14 +15,13 @@ from langgraph.prebuilt import ToolNode
 
 load_dotenv()
 
+
 @tool
 def retrieve_web_content(query: str) -> List[str]:
-    
     """Function to retrieve usable documents for AI assistant"""
 
     retriever = ExaSearchRetriever(k=3, highlights=True, use_autoprompt=True)
 
-    
     # Define how to extract relevant metadata from the search results
     document_prompt = PromptTemplate.from_template(
         """
@@ -52,16 +50,22 @@ def retrieve_web_content(query: str) -> List[str]:
     documents = retrieval_chain.invoke(query)
     return documents
 
+
 # Create the model and add the retrieval tool
-model = ChatAnthropic(model="claude-3-5-sonnet-20240620", temperature=0).bind_tools([retrieve_web_content])
+model = ChatAnthropic(model="claude-3-5-sonnet-20240620",
+                      temperature=0).bind_tools([retrieve_web_content])
 
 # Determine whether to continue or end
+
+
 def should_continue(state: MessagesState) -> Literal["tools", END]:
     messages = state["messages"]
     last_message = messages[-1]
     return "tools" if last_message.tool_calls else END
 
 # Function to generate model responses
+
+
 def call_model(state: MessagesState):
     messages = state["messages"]
     response = model.invoke(messages)
@@ -69,6 +73,7 @@ def call_model(state: MessagesState):
 
 
 console = Console()
+
 
 def main():
 
@@ -84,10 +89,9 @@ def main():
 
     # Compile the workflow into a runnable
     app = workflow.compile(checkpointer=checkpointer)
-    
+
     messages = []
     thread_id = 0
-    
 
     while True:
         try:
@@ -119,9 +123,7 @@ def main():
             break
         except Exception as e:
             console.print(f"[bold red]An error occurred:[/bold red] {str(e)}")
-    
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     main()
-
-
-
