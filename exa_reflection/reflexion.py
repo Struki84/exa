@@ -11,7 +11,6 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper
 from langchain_core.tools import StructuredTool
 from langgraph.prebuilt import ToolNode
-from typing import Literal
 from langgraph.graph import END, StateGraph, START
 from langgraph.graph.message import add_messages
 from typing import Annotated
@@ -84,13 +83,15 @@ actor_prompt_template = ChatPromptTemplate.from_messages(
         (
             "system",
             """You are expert researcher.
-Current time: {time}
+            Current time: {time}
 
-1. {first_instruction}
-2. Reflect and critique your answer. Be severe to maximize improvement.
-3. Recommend search queries to research information and improve your answer.""",
+            1. {first_instruction}
+            2. Reflect and critique your answer. Be severe to maximize improvement.
+            3. Recommend search queries to research information and improve your answer.""",
         ),
+
         MessagesPlaceholder(variable_name="messages"),
+
         (
             "user",
             "\n\nReflect on the user's original question and the"

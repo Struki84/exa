@@ -2,11 +2,13 @@ import asyncio
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_anthropic import ChatAnthropic
-from typing import Annotated, List, Sequence
+from typing import Annotated
 from langgraph.graph import END, StateGraph, START
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import MemorySaver
 from typing_extensions import TypedDict
+
+llm = ChatAnthropic(model="claude-3-5-sonnet-20240620", temperature=0)
 
 prompt = ChatPromptTemplate.from_messages(
     [
@@ -19,10 +21,8 @@ prompt = ChatPromptTemplate.from_messages(
         MessagesPlaceholder(variable_name="messages"),
     ]
 )
-llm = ChatAnthropic(model="claude-3-5-sonnet-20240620", temperature=0)
-generate = prompt | llm
 
-request = HumanMessage(content="What do you want to know about the universe?")
+generate = prompt | llm
 
 reflection_prompt = ChatPromptTemplate.from_messages(
     [
@@ -34,6 +34,7 @@ reflection_prompt = ChatPromptTemplate.from_messages(
         MessagesPlaceholder(variable_name="messages"),
     ]
 )
+
 reflect = reflection_prompt | llm
 
 
@@ -75,6 +76,8 @@ workflow.add_edge("reflect", "generate")
 graph = workflow.compile(checkpointer=checkpoint)
 
 config = {"configurable": {"thread_id": 1}}
+
+request = HumanMessage(content="What do you want to know about the universe?")
 
 
 async def process_events():

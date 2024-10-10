@@ -2,7 +2,6 @@ from typing import List, Literal
 from dotenv import load_dotenv
 from rich.console import Console
 from rich.prompt import Prompt
-
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.prompts import PromptTemplate
@@ -112,7 +111,7 @@ def main():
             ai_response = final_state["messages"][-1]
 
             if isinstance(ai_response, AIMessage):
-                console.print(ai_response.content)
+                Console.print(ai_response.content)
 
             messages = final_state["messages"]
 
