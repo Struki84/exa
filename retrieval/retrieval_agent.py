@@ -39,7 +39,8 @@ def retrieve_web_content(query: str) -> List[str]:
         }
     )
 
-    # Create a chain to process the retrieved documents and format it using the prompt
+    # Create a chain to process the retrieved documents and format it
+    # using the prompt
     document_chain = (parse_info | document_prompt)
 
     # Execute the retrieval and process the results in the document chain

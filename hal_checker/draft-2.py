@@ -10,7 +10,8 @@ from langchain_exa import ExaSearchRetriever
 from typing import Annotated
 from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import HumanMessage, SystemMessage
+from langgraph.prebuilt import ToolNode
 
 
 class State(BaseModel):
@@ -68,11 +69,109 @@ def hallucination_check(text: str):
      7. save the used search queries
      8. save the verified facts
      9. save the hallucinated facts
-      """
+    """
+
+    # 1. Extract factual claims from the query using LLM
+    claims = extract_claims(text)
+
+    # 2 & 3. Create search queries and perform web search for each claim
+    exa_queries = []
+    search_results = {}
+    for claim in claims:
+        query = create_search_query(claim)
+        exa_queries.append(query)
+        search_results[claim] = exa_search(query)
+
+    # 4. Verify each claim as true or false based on search results
+    verified_facts = []
+    hallucinated_facts = []
+    for claim, results in search_results.items():
+        if verify_claim(claim, results):
+            verified_facts.append(claim)
+        else:
+            hallucinated_facts.append(claim)
+
+    # 5 & 6. Determine if the text is a hallucination and the confidence
+    is_hallucination = len(hallucinated_facts) > 0
+    confidence = determine_confidence(verified_facts, hallucinated_facts)
+
+    # 7, 8, 9. Save the used search queries, verified facts, and hallucinated facts
+    sources = list(set([result.split('\n')[0].split(': ')[1]
+                        for results in search_results.values()
+                        for result in results]))
+
+    return {
+        "is_hallucination": is_hallucination,
+        "confidence": confidence,
+        "exa_queries": exa_queries,
+        "sources": sources,
+        "verified_facts": verified_facts,
+        "hallucinated_facts": hallucinated_facts
+    }
+
+
+def extract_claims(text: str) -> List[str]:
+    """Extract factual claims from the text using an LLM."""
+    system_message = SystemMessage(content="""
+    You are an expert at extracting factual claims from text.
+    Your task is to identify and list all factual claims present
+     in the given text.
+    Each claim should be a single, verifiable statement.
+    Present the claims as a Python list of strings.
+    """)
+
+    human_message = HumanMessage(
+        content=f"Extract factual claims from this text: {text}")
+    response = llm.invoke([system_message, human_message])
+
+    claims = eval(response.content)
+    return claims
+
+
+def create_search_query(claim: str) -> str:
+    """Create a exa search query for the given claim."""
+    # generate search strings using llm
+
+
+def verify_claim(claim: str, results: List[str]) -> bool:
+    """Verify if the claim is true or false based on the search results."""
+    # based on search results verify is a calim is true or false
+
+
+def determine_confidence(verified: List[str], hallucinated: List[str]) -> str:
+    """Determine the confidence level of the hallucination assessment."""
+    total_claims = len(verified) + len(hallucinated)
+    if total_claims == 0:
+        return "Low"
+
+    hallucination_ratio = len(hallucinated) / total_claims
+    if hallucination_ratio == 0:
+        return "Certain"
+    elif hallucination_ratio < 0.2:
+        return "High"
+    elif hallucination_ratio < 0.5:
+        return "Medium"
+    else:
+        return "Low"
 
 
 llm = ChatAnthropic(model="claude-3-5-sonnet-20240620", temperature=0)
 llm.bind_tools([hallucination_check])
+system_prompt = """
+You are an expert on hallucinations.
+
+Use the hallucination_check tool to detect hallucinations and generate an analysis.
+Provide your final analysis in this format:
+
+FINAL ANALYSIS
+Is Hallucination: [Yes/No]
+Confidence: [Low/Medium/High/Certain]
+Exa Queries Used: [List of queries]
+Sources: [List of relevant URLs]
+Verified Facts: [List of facts that were verified]
+Hallucinated Facts: [List of points that appear to be hallucinations, if any]
+
+"""
 
 
 def call_model(state: State):
@@ -81,16 +180,21 @@ def call_model(state: State):
     return {"messages": state.messages + [response]}
 
 
-def stop_analysis(state: State) -> Literal["agent", "process_result", END]:
+def use_analysis(state: State) -> Literal["tools", "process_result"]:
     messages = state.messages
     last_message = messages[-1]
-    content = last_message.content
+    # content = last_message.content
 
-    if isinstance(last_message, AIMessage) and "FINAL ANALYSIS" in content:
-        return "process_result"
+    # if isinstance(last_message, AIMessage) and "FINAL ANALYSIS" in content:
+    #     return "process_result"
 
     # Limit to prevent infinite loops
-    return "agent" if len(messages) < 4 else END
+    # maybe add a condition based on hallucionation lvls?
+    # should we even loop this or just do it once,
+    # as in the exa retreival example?
+    # return "agent" if len(messages) < 4 else END
+
+    return "tools" if last_message.tool_calls else "process_result"
 
 
 def process_result(state: State):
@@ -110,18 +214,36 @@ def process_result(state: State):
 workflow = StateGraph(State)
 
 workflow.add_node("agent", call_model)
+workflow.add_node("tools", ToolNode(hallucination_check))
 workflow.add_node("process_result", process_result)
 
 workflow.set_entry_point("agent")
-workflow.add_conditional_edges(
-    "agent",
-    stop_analysis,
-    {
-        "agent": "agent",
-        "process_result": "process_result",
-        END: END
-    }
-)
+workflow.add_conditional_edges("agent", use_analysis, {
+    "process_result": "process_result",
+    "tools": "tools"
+})
+workflow.add_edge("tools", "process_result")
 workflow.add_edge("process_result", END)
 
 graph = workflow.compile(checkpointer=MemorySaver())
+
+text = """The Eiffel Tower in Paris was originally constructed as a giant
+ sundial in 1822, using the shadow cast by its iron lattice structure to tell
+ time for the city's residents."""
+
+initial_state = State(messages=[
+    SystemMessage(content=system_prompt),
+    HumanMessage(content=text)
+])
+
+
+final_state = graph.invoke(
+    initial_state,
+    config={"configurable": {"thread_id": 11}},
+)
+
+print(final_state["messages"][-1].content)
+
+print("---")
+
+print(final_state["analysis_result"])
